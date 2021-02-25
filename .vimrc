@@ -62,6 +62,9 @@ if !empty(glob('~/.vim_magikarp/autoload/plug.vim'))
 	" Special targets
 	Plug 'wellle/targets.vim'
 
+	" My own custom functions and configurations
+	Plug 'magikarp-salesman/magikarp.vim'
+
 	" Initialize plugin system
 	call plug#end()
 	
