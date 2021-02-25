@@ -19,6 +19,9 @@ set syntax=on                 " highlight syntax
 set filetype=on
 set laststatus=2
 
+" Remap leader key
+let mapleader = ','
+
 " Search down into subfolders
 set path+=**
 set wildignore+=/usr/include/**
