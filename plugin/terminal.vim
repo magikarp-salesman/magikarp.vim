@@ -4,3 +4,5 @@
 " gt - to switch tabs
 "
 command Terminal tab split | execute("term") | only
+
+" vim : ft=vim syntax=on nowrap

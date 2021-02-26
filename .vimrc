@@ -82,14 +82,6 @@ if isdirectory(expand("~/.vim_magikarp/plugged"))
 	" make copy to clipboard
 	call toop#mapShell('tee /dev/clip', '<leader>clip')
 	
-	" Set themes
-	set t_Co=256
-	colorscheme devbox-dark-256
-	" tweaks to get red errors on devbox-dark-256
-	hi Error            cterm=bold              ctermfg=15          ctermbg=196
-	hi ErrorMsg         cterm=bold              ctermfg=15          ctermbg=196
-	hi Pmenu            cterm=NONE              ctermfg=252 	ctermbg=20
-	hi PmenuSel         cterm=NONE              ctermfg=NONE	ctermbg=20
 
 	" omni completion ctrl+x ctrl+o to call in insert mode
 	filetype plugin on
@@ -102,3 +94,5 @@ if isdirectory(expand("~/.vim_magikarp/plugged"))
 	inoremap <expr> <PageUp>   pumvisible() ? "\<PageUp>\<C-p>\<C-n>" : "\<PageUp>"
 	
 endif
+
+" vim : ft=vim syntax=on nowrap
