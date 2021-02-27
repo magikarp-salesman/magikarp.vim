@@ -8,9 +8,12 @@
 "true" ; echo "Finished installing vim-plug."
 "true" ; set +e && exit 0
 
+" We will be storing the packages and configurations on a different folder
+let g:vimmagikarpfolder = expand("~/.vim_magikarp")
+
 " Set the runtime path to something else different from ~/.vim
-let &runtimepath = "~/.vim_magikarp,".&runtimepath 
-let &packpath = "~/.vim_magikarp,".&packpath
+let &runtimepath = g:vimmagikarpfolder.",".&runtimepath 
+let &packpath = g:vimmagikarpfolder.",".&packpath
 
 " Base options
 set nocompatible              " be iMproved, required
@@ -37,7 +40,7 @@ set backupdir=.backup/,~/.backup/,/tmp//,/var/tmp//
 set directory=.swp/,~/.swp/,/tmp//,/var/tmp//
 set undodir=.undo/,~/.undo/,/tmp//,/var/tmp//
 
-if empty(glob('~/.vim_magikarp/autoload/plug.vim'))
+if empty(glob(g:vimmagikarpfolder.'/autoload/plug.vim'))
 	echom "vim-plug not installed! run this command to install it automatically:"	
 	echom "    bash .vimrc"
 	echom " "
@@ -54,7 +57,7 @@ let g:airline_theme='powerlineish'
 " Specify a directory for plugins
 " - For Neovim: ~/.local/share/nvim/plugged
 " - Avoid using standard Vim directory names like 'plugin'
-call plug#begin('~/.vim_magikarp/plugged')
+call plug#begin(g:vimmagikarpfolder.'/plugged')
 
 	" PlugInstall and PlugUpdate will clone fzf in ~/.fzf and run the install script
 	Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
@@ -74,27 +77,6 @@ call plug#begin('~/.vim_magikarp/plugged')
 	" My own custom functions and configurations
 	Plug 'magikarp-salesman/magikarp.vim'
 
-" Initialize plugin system
 call plug#end()
-
-if isdirectory(expand("~/.vim_magikarp/plugged"))
-
-	" make json objects beautiful
-	call toop#mapShell('jq .', '<leader>jq')
-	" make copy to clipboard
-	call toop#mapShell('tee /dev/clip', '<leader>clip')
-	
-
-	" omni completion ctrl+x ctrl+o to call in insert mode
-	filetype plugin on
-	set omnifunc=syntaxcomplete#Complete
-	" mappings to more common keys
-	inoremap <expr> <CR>       pumvisible() ? "\<C-y>" : "\<CR>"
-	inoremap <expr> <Down>     pumvisible() ? "\<C-n>" : "\<Down>"
-	inoremap <expr> <Up>       pumvisible() ? "\<C-p>" : "\<Up>"
-	inoremap <expr> <PageDown> pumvisible() ? "\<PageDown>\<C-p>\<C-n>" : "\<PageDown>"
-	inoremap <expr> <PageUp>   pumvisible() ? "\<PageUp>\<C-p>\<C-n>" : "\<PageUp>"
-	
-endif
 
 " vim : ft=vim syntax=on nowrap
