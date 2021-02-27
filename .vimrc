@@ -25,6 +25,10 @@ set wildignore+=/usr/include/**
 set wildignore+=**/node_modules/**
 set wildignore+=**/.cache/**
 
+" The default for 'backspace' is very confusing to new users, so change it to a
+" more sensible value.  Add "set backspace&" to your ~/.vimrc to reset it.
+set backspace+=indent,eol,start
+
 " Display all matching files when tabbing
 set wildmenu
 
@@ -33,19 +37,24 @@ set backupdir=.backup/,~/.backup/,/tmp//,/var/tmp//
 set directory=.swp/,~/.swp/,/tmp//,/var/tmp//
 set undodir=.undo/,~/.undo/,/tmp//,/var/tmp//
 
-if !empty(glob('~/.vim_magikarp/autoload/plug.vim'))
+if empty(glob('~/.vim_magikarp/autoload/plug.vim'))
+	echom "vim-plug not installed! run this command to install it automatically:"	
+	echom "    bash .vimrc"
+	echom " "
+	finish " exit
+endif
 
-	" Settings	
+" Settings	
 
-	let g:airline#extensions#tabline#enabled = 1
-	let g:airline#extensions#branch#enabled = 0
-	let g:airline_powerline_fonts = 1
-	let g:airline_theme='dark'
+let g:airline#extensions#tabline#enabled = 1
+let g:airline#extensions#branch#enabled = 0
+let g:airline_powerline_fonts = 1
+let g:airline_theme='powerlineish'
 
-	" Specify a directory for plugins
-	" - For Neovim: ~/.local/share/nvim/plugged
-	" - Avoid using standard Vim directory names like 'plugin'
-	call plug#begin('~/.vim_magikarp/plugged')
+" Specify a directory for plugins
+" - For Neovim: ~/.local/share/nvim/plugged
+" - Avoid using standard Vim directory names like 'plugin'
+call plug#begin('~/.vim_magikarp/plugged')
 
 	" PlugInstall and PlugUpdate will clone fzf in ~/.fzf and run the install script
 	Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
@@ -65,15 +74,8 @@ if !empty(glob('~/.vim_magikarp/autoload/plug.vim'))
 	" My own custom functions and configurations
 	Plug 'magikarp-salesman/magikarp.vim'
 
-	" Initialize plugin system
-	call plug#end()
-	
-
-else
-	echom "vim-plug not installed! run this command to install it automatically:"	
-	echom "    bash .vimrc"
-	echom " "
-endif
+" Initialize plugin system
+call plug#end()
 
 if isdirectory(expand("~/.vim_magikarp/plugged"))
 
