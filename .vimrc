@@ -74,6 +74,8 @@ call plug#begin(g:vimmagikarpfolder.'/plugged')
 	" Special targets
 	Plug 'wellle/targets.vim'
 
+	Plug 'ryanoasis/vim-devicons'
+
 	" My own custom functions and configurations
 	Plug 'magikarp-salesman/magikarp.vim'
 
