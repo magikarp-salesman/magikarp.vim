@@ -8,7 +8,7 @@ it stores most of the configurations on a separate folder called ````.vim_magika
 
 ## Requirements
 
-- Vim8.0+, NeoVim
+- Vim8.1+, NeoVim
 - MacVim or VimR (optional)
 - Curl
 - Bash
@@ -36,3 +36,14 @@ $ curl -o ~/.vim_magikarp/.vimrc --create-dirs https://raw.githubusercontent.com
 ````
 
 Keep in mind that this repo might be constantly changing as I go by updating my dotfiles and way of work.
+
+
+## Workflow
+
+- Open any file in Vim
+- Open a file in the same directory of the buffer you are on - ````:Edit````
+- Open a terminal in the same folder of the buffer where you are on - ````:Terminal````
+  - Special commands from inside the terminal (type in the commandline) they call the vim through terminal-call
+	- Open file ````bash$ vim FILENAME```` 
+	- Go back to normal mode ````bash$ normal````
+	- Close terminal ````bash$ exit```` 

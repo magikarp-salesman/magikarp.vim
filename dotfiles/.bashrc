@@ -6,10 +6,22 @@ this_function_will_not_be_passed_onto_the_ssh_service(){
 	echo "not needed there"
 }
 
-openfile(){
-	echo -e "\0033]0;Telnet link to Saturn\a"
-	echo -e "\0033]51;[\"drop\", \"$1\"]\a"
+vim(){
+	FILEPATH=$(grealpath $1)
+	echo -e "\0033]51;[\"call\",\"TerminalOpen\",[\"$FILEPATH\"]]\a"
 }
+
+exit(){
+	echo -e "\0033]51;[\"call\",\"TerminalClose\",[]]\a"
+}
+
+normal(){
+	echo -e "\0033]51;[\"call\",\"TerminalNormalMode\",[]]\a"
+}
+
+export -f vim
+export -f exit
+export -f normal
 
 ## PROMPT > 
 
@@ -48,18 +60,18 @@ __alias() {
 	alias igt=git
 	alias tig=git
 	alias gti=git
-	alias ls="ls -l --color --group-directories-first -v"
-	alias dir="ls -l --color --group-directories-first -v"
+	alias ls="ls -lG -v"
+	alias dir="ls -lG -v"
 	alias :q=exit
 	alias :x=exit
 	alias :q!=exit
-	alias ll="ls -l --color --group-directories-first -v"
-	alias sl="ls -l --color --group-directories-first -v"
-	alias ls-="ls -l --color --group-directories-first -v"
-	alias ls-l="ls -l --color --group-directories-first -v"
-	alias ls-la="ls -la --color --group-directories-first -v"
-	alias ls-h="ls -ld --color .* --group-directories-first -v"
-	alias la="ls -la --color --group-directories-first -v"
+	alias ll="ls -lG -v"
+	alias sl="ls -lG -v"
+	alias ls-="ls -lG -v"
+	alias ls-l="ls -lG -v"
+	alias ls-la="ls -lGa -v"
+	alias ls-h="ls -lGd .* -v"
+	alias la="ls -lGa -v"
 	alias rm-rf="rm -rf"
 	alias lcoate="locate"
 	alias loacte="locate"
