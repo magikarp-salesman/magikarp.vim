@@ -13,9 +13,28 @@ function Terminal()
 	let envs['BASH_FUNC_normal%%'] = '() {  echo -en "\0033]51;[\"call\",\"TerminalNormalMode\",[]]\a" ; }'
 	let envs['BASH_FUNC_error%%'] = '() { echo -en "\0033]51;[\"call\",\"TerminalNotification\",[\"ErrorMsg\",\"${1}\"]]\a" ; }'
 	let envs['BASH_FUNC_warn%%'] = '() { echo -en "\0033]51;[\"call\",\"TerminalNotification\",[\"Wildmenu\",\"${1}\"]]\a" ; }'
+	
+	let envs['BASH_FUNC___vim-wait%%'] = '() { FILEPATH=$(grealpath $1) ; echo -en "\0033]51;[\"call\",\"TerminalOpen\",[\"$FILEPATH\"]]\a" ; read -n 1 -s -r ; }'
+
+	" change editors
+	let envs['FCEDIT'] = g:vimmagikarpfolder.'/.vimwait'
+	let envs['GIT_EDITOR'] = g:vimmagikarpfolder.'/.vimwait'
+	let envs['EDITOR'] = 'vim'
 
 	" commands to set up bash
 	let envs['PROMPT_COMMAND'] = '__prompt_command'
+	let init =<< trim EOF
+	() {
+		cat << 'HEREDOC' > ~/.vim_magikarp/.vimwait
+#!/bin/bash
+vim "$1"
+read -n 1 -s -r
+HEREDOC
+		chmod a+x ~/.vim_magikarp/.vimwait
+		unset __init
+	}
+	EOF
+	let envs['BASH_FUNC___init%%'] = join(init,"\n")
 	let alias =<< trim EOF
 	() {
 		alias vi=vim
@@ -69,6 +88,7 @@ function Terminal()
 		fi
 		export PS1="${RESET}${DATE_TIME}\u${H_NAME}${VIM_ENABLED}${GREEN}${SPATH} ${ERROR}\\$ ${RESET}"
 		__alias # run alias
+		# __init
 		set +e
 		history -a # save history immediately
 	}
