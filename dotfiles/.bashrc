@@ -2,27 +2,6 @@
 
 ## All that is written outside of the PROMPT> tag will not be passed to the ssh function
 
-this_function_will_not_be_passed_onto_the_ssh_service(){
-	echo "not needed there"
-}
-
-vim(){
-	FILEPATH=$(grealpath $1)
-	echo -e "\0033]51;[\"call\",\"TerminalOpen\",[\"$FILEPATH\"]]\a"
-}
-
-exit(){
-	echo -e "\0033]51;[\"call\",\"TerminalClose\",[]]\a"
-}
-
-normal(){
-	echo -e "\0033]51;[\"call\",\"TerminalNormalMode\",[]]\a"
-}
-
-export -f vim
-export -f exit
-export -f normal
-
 ## PROMPT > 
 
 export HISTTIMEFORMAT="%Y%m%d %T "
@@ -131,7 +110,7 @@ export -f path_off
 export PROMPT_COMMAND=__prompt_command
 
 __prompt_command() {
-	ERROR_RC="$?"
+	ERROR_RC="${?}"
 	set -e
 	RED='\[\033[31m\]'
 	GREEN='\[\033[32m\]'
@@ -171,6 +150,9 @@ __prompt_command() {
 	history -a # save history immediately
 	if [ $TMUX_PANE ]; then
 		tmux set -qg status-right "$(pwd)"
+	fi
+	if [ "$ERROR_RC" -gt 0 ]; then
+		error "code $ERROR_RC"
 	fi
 }
 

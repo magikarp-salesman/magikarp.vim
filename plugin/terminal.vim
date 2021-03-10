@@ -2,6 +2,80 @@
 " ----
 "
 function Terminal()
+
+	let envs = {}
+
+	let envs['BASH_SILENCE_DEPRECATION_WARNING'] = 1 " silence the deprecation bash stuff in macos
+
+	" commands to communicate with vim
+	let envs['BASH_FUNC_vim%%'] = '() { FILEPATH=$(grealpath $1) ; echo -en "\0033]51;[\"call\",\"TerminalOpen\",[\"$FILEPATH\"]]\a" ; }'
+	let envs['BASH_FUNC_exit%%'] = '() { echo -en "\0033]51;[\"call\",\"TerminalClose\",[]]\a" ; }'
+	let envs['BASH_FUNC_normal%%'] = '() {  echo -en "\0033]51;[\"call\",\"TerminalNormalMode\",[]]\a" ; }'
+	let envs['BASH_FUNC_error%%'] = '() { echo -en "\0033]51;[\"call\",\"TerminalNotification\",[\"ErrorMsg\",\"${1}\"]]\a" ; }'
+	let envs['BASH_FUNC_warn%%'] = '() { echo -en "\0033]51;[\"call\",\"TerminalNotification\",[\"Wildmenu\",\"${1}\"]]\a" ; }'
+
+	" commands to set up bash
+	let envs['PROMPT_COMMAND'] = '__prompt_command'
+	let alias =<< trim EOF
+	() {
+		alias vi=vim
+		alias v=vim
+		alias vmi=vim
+		alias time_on="export VIEW_DATE=On"
+		alias time_off="unset VIEW_DATE"
+		alias shortpath_on="export SHORT_PATH=On"
+		alias shortpath_off="unset SHORT_PATH"
+	}
+	EOF
+	let envs['BASH_FUNC___alias%%'] = join(alias,"\n")
+
+	let prompt_command =<< trim EOF
+	() {	
+		ERROR_RC="${?}"
+		set -e
+		RED='\[\033[31m\]'
+		GREEN='\[\033[32m\]'
+		YELLOW='\[\033[33m\]'
+		RESET='\[\033[0m\]'
+		HIDDEN='\[\033[38;5;239m\]'
+		DIM='\[\033[2m\]'
+		DATE_TIME=""
+		if [ $VIEW_DATE ];then
+			date_var=`date -u +%Y%m%d-%H:%M:%S%Z`
+			DATE_TIME="${DIM}${date_var}${RESET} "
+		fi
+		if [ $VI_MODE ];then
+			VIM_ENABLED="${RED}${RESET}"
+		else
+			VIM_ENABLED=":"
+		fi
+		if [ $UNAME_WSL ] || [ $UNAME_GITBASH ];then
+			H_NAME=''
+		else
+			H_NAME="${YELLOW}@${HOSTNAME}${RESET}"
+		fi
+		if [ ${ERROR_RC} -gt 0 ];then
+			ERROR="${RED}"
+		else
+			ERROR="${GREEN}"
+		fi
+		if [ $ERROR_RC -gt 0 ]; then
+			error "code $ERROR_RC"
+		fi
+		if [ $SHORT_PATH ];then
+			SPATH='\W'
+		else
+			SPATH='\w'
+		fi
+		export PS1="${RESET}${DATE_TIME}\u${H_NAME}${VIM_ENABLED}${GREEN}${SPATH} ${ERROR}\\$ ${RESET}"
+		__alias # run alias
+		set +e
+		history -a # save history immediately
+	}
+	EOF
+
+	let envs['BASH_FUNC___prompt_command%%'] = join(prompt_command, "\n")
+
 	let options = {} " New dictionary
 	let options['term_name'] = "Terminal" " all terminals have this name
 	let options['term_api'] = "Terminal" " all functions have to be called TerminalXXX from inside the call/drop function
@@ -9,8 +83,9 @@ function Terminal()
 	let options['hidden'] = 1 " start in a hidden buffer
 	let options['cwd'] = expand('%:p:h') " start in the same directory as the file we are in
 	let options['term_kill'] = "hup"
+	let options['env'] = envs
 	
-	let s:buf = term_start(['/bin/bash','-c','source /Users/jose.placido/.vim_magikarp/plugged/magikarp.vim/dotfiles/.bashrc ; clear ; bash'], options)
+	let s:buf = term_start(['/bin/bash'], options)
 
 	" Switch to the hidden buffer
 	exec "buffer ".s:buf
@@ -40,6 +115,27 @@ function TerminalNormalMode(bufnum, arglist)
 	if len(a:arglist) == 0
 		" return to normal mode
 		call feedkeys("\<C-W>N")
+	endif
+endfunction
+
+function TerminalNotification(bufnum, arglist)
+	if len(a:arglist) == 2
+		" popup stating the error
+		call popup_create(a:arglist[1], #{
+			\ line: 2,
+			\ col: 1000000,
+			\ pos: 'topright',
+			\ minwidth: 1,
+			\ time: 3000,
+			\ title: ' notification ',
+			\ tabpage: -1,
+			\ zindex: 300,
+			\ drag: 0,
+			\ highlight: a:arglist[0],
+			\ border: [],
+			\ close: 'click',
+			\ padding: [0,1,0,1],
+			\ })
 	endif
 endfunction
 
