@@ -73,9 +73,11 @@ call plug#begin(g:vimmagikarpfolder.'/plugged')
 
 	" Special targets
 	Plug 'wellle/targets.vim'
-
+	
+	" Distractionless environment
 	Plug 'junegunn/goyo.vim'
 
+	" Pretty icons
 	Plug 'ryanoasis/vim-devicons'
 
 	" My own custom functions and configurations

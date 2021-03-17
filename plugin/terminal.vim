@@ -1,7 +1,7 @@
 " Open terminal in new buffer
 " ----
 "
-function Terminal()
+function Terminal(path = v:none)
 
 	let envs = {}
 
@@ -9,10 +9,12 @@ function Terminal()
 
 	" commands to communicate with vim
 	let envs['BASH_FUNC_vim%%'] = '() { FILEPATH=$(grealpath $1) ; echo -en "\0033]51;[\"call\",\"TerminalOpen\",[\"$FILEPATH\"]]\a" ; }'
+	let envs['BASH_FUNC_new%%'] = '() { touch $1 && FILEPATH=$(grealpath $1) && echo -en "\0033]51;[\"call\",\"TerminalOpen\",[\"$FILEPATH\"]]\a" ; }'
 	let envs['BASH_FUNC_exit%%'] = '() { echo -en "\0033]51;[\"call\",\"TerminalClose\",[]]\a" ; }'
 	let envs['BASH_FUNC_normal%%'] = '() {  echo -en "\0033]51;[\"call\",\"TerminalNormalMode\",[]]\a" ; }'
 	let envs['BASH_FUNC_error%%'] = '() { echo -en "\0033]51;[\"call\",\"TerminalNotification\",[\"ErrorMsg\",\"${1}\"]]\a" ; }'
 	let envs['BASH_FUNC_warn%%'] = '() { echo -en "\0033]51;[\"call\",\"TerminalNotification\",[\"Wildmenu\",\"${1}\"]]\a" ; }'
+	let envs['BASH_FUNC_terminal%%'] = '() { DIRECTORY=$(pwd) ; echo -en "\0033]51;[\"call\",\"TerminalDuplicate\",[\"$DIRECTORY\"]]\a" ; }'
 	
 	let envs['BASH_FUNC___vim-wait%%'] = '() { FILEPATH=$(grealpath $1) ; echo -en "\0033]51;[\"call\",\"TerminalOpen\",[\"$FILEPATH\"]]\a" ; read -n 1 -s -r ; }'
 
@@ -20,6 +22,12 @@ function Terminal()
 	let envs['FCEDIT'] = g:vimmagikarpfolder.'/.vimwait'
 	let envs['GIT_EDITOR'] = g:vimmagikarpfolder.'/.vimwait'
 	let envs['EDITOR'] = 'vim'
+
+	" set less options
+	let envs['LESS'] = '--chop-long-lines'
+
+	" set ls options
+	let envs['CLICOLOR'] = 1
 
 	" commands to set up bash
 	let envs['PROMPT_COMMAND'] = '__prompt_command'
@@ -44,6 +52,8 @@ HEREDOC
 		alias time_off="unset VIEW_DATE"
 		alias shortpath_on="export SHORT_PATH=On"
 		alias shortpath_off="unset SHORT_PATH"
+		alias ls="ls -l"
+		alias la="ls -la"
 	}
 	EOF
 	let envs['BASH_FUNC___alias%%'] = join(alias,"\n")
@@ -88,7 +98,7 @@ HEREDOC
 		fi
 		export PS1="${RESET}${DATE_TIME}\u${H_NAME}${VIM_ENABLED}${GREEN}${SPATH} ${ERROR}\\$ ${RESET}"
 		__alias # run alias
-		# __init
+		LC_ALL=C type __init 2>/dev/null 1>/dev/null && __init
 		set +e
 		history -a # save history immediately
 	}
@@ -96,19 +106,26 @@ HEREDOC
 
 	let envs['BASH_FUNC___prompt_command%%'] = join(prompt_command, "\n")
 
+	let current_dir = a:path
+	if(a:path == v:none)
+		let current_dir = expand('%:p:h') " start in the same directory as the file we are in
+	endif
+
+	let term_name = printf('Terminal 0x%02hX', rand(srand()) % 153) "Terminal 0x(0-99)
+
 	let options = {} " New dictionary
-	let options['term_name'] = "Terminal" " all terminals have this name
+	let options['term_name'] = term_name " all terminals have this name
 	let options['term_api'] = "Terminal" " all functions have to be called TerminalXXX from inside the call/drop function
 	" doesnt work - let options['term_finish'] = "close" " close as soon as the main process finishes
 	let options['hidden'] = 1 " start in a hidden buffer
-	let options['cwd'] = expand('%:p:h') " start in the same directory as the file we are in
+	let options['cwd'] = current_dir
 	let options['term_kill'] = "hup"
 	let options['env'] = envs
 	
 	let s:buf = term_start(['/bin/bash'], options)
 
 	" Switch to the hidden buffer
-	exec "buffer ".s:buf
+	exec "buffer! ".s:buf
 endfunction
 
 function TerminalOpen(bufnum, arglist)
@@ -135,6 +152,15 @@ function TerminalNormalMode(bufnum, arglist)
 	if len(a:arglist) == 0
 		" return to normal mode
 		call feedkeys("\<C-W>N")
+	endif
+endfunction
+
+function TerminalDuplicate(bufnum, arglist)
+	if len(a:arglist) == 1
+		" return to normal mode
+		call feedkeys("\<C-W>N")
+		" open new terminal
+		call feedkeys(":call Terminal(\"".a:arglist[0]."\")"."\<CR>")
 	endif
 endfunction
 

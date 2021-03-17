@@ -8,8 +8,11 @@ if isdirectory(expand(g:vimmagikarpfolder.'/plugged'))
 	call toop#mapShell('tee /dev/clip', '<leader>clip')
 	
 	" Leader+b for a list of buffers
-	nnoremap <Leader>b :ls<CR>:b<Space>
+	nnoremap <Leader>b :ls<CR>:b!<Space>
 	command BufferClose bd
+
+	" save buffer and close
+	nnoremap <Leader>wd :w<CR>:bd<CR>
 
 	" omni completion ctrl+x ctrl+o to call in insert mode
 	filetype plugin on
@@ -37,4 +40,15 @@ endfunction
 
 nnoremap gx :call OpenURLUnderCursor()<CR>
 
+" Google search
+function! SearchGoogleUnderCursor()
+  let s:uri = expand('<cWORD>')
+  let s:uri = substitute(s:uri, '?', '\\?', '')
+  let s:uri = shellescape(s:uri, 1)
+  if s:uri != ''
+    silent exec "!open 'https://google.com/search?q=".s:uri."'"
+    :redraw!
+  endif
+endfunction
 
+nnoremap gs :call SearchGoogleUnderCursor()<CR>
