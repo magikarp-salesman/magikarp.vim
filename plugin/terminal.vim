@@ -3,6 +3,88 @@
 "
 function Terminal(path = v:none)
 
+	let current_dir = a:path
+	if(a:path == v:none)
+		let current_dir = expand('%:p:h') " start in the same directory as the file we are in
+	endif
+
+	let term_name = printf('Terminal 0x%02hX', rand(srand()) % 153) "Terminal 0x(0-99)
+	let envs = TerminalGetEnvVariables()
+
+	let options = {} " New dictionary
+	let options['term_name'] = term_name " all terminals have this name
+	let options['term_api'] = "Terminal" " all functions have to be called TerminalXXX from inside the call/drop function
+	" doesnt work - let options['term_finish'] = "close" " close as soon as the main process finishes
+	let options['hidden'] = 1 " start in a hidden buffer
+	let options['cwd'] = current_dir
+	let options['term_kill'] = "hup"
+	let options['env'] = envs
+	
+	let s:buf = term_start(['/bin/bash'], options)
+
+	" Switch to the hidden buffer
+	exec "buffer! ".s:buf
+endfunction
+
+function TerminalOpen(bufnum, arglist)
+	if len(a:arglist) == 1
+		" return to normal mode
+		call feedkeys("\<C-W>N")
+		" arglist[0] - full filename canonical path
+		call feedkeys(":badd ".a:arglist[0]."\<CR>")
+		" switch to new buffer
+		call feedkeys(":b! ".a:arglist[0]."\<CR>")
+	endif
+endfunction
+
+function TerminalClose(bufnum, arglist)
+	if len(a:arglist) == 0
+		" return to normal mode
+		call feedkeys("\<C-W>N")
+		" close buffer
+		call feedkeys(":bd! ".a:bufnum."\<CR>")	
+	endif
+endfunction
+
+function TerminalNormalMode(bufnum, arglist)
+	if len(a:arglist) == 0
+		" return to normal mode
+		call feedkeys("\<C-W>N")
+	endif
+endfunction
+
+function TerminalDuplicate(bufnum, arglist)
+	if len(a:arglist) == 1
+		" return to normal mode
+		call feedkeys("\<C-W>N")
+		" open new terminal
+		call feedkeys(":call Terminal(\"".a:arglist[0]."\")"."\<CR>")
+	endif
+endfunction
+
+function TerminalNotification(bufnum, arglist)
+	if len(a:arglist) == 2
+		" popup stating the error
+		call popup_create(a:arglist[1], #{
+			\ line: 2,
+			\ col: 1000000,
+			\ pos: 'topright',
+			\ minwidth: 1,
+			\ time: 3000,
+			\ title: ' notification ',
+			\ tabpage: -1,
+			\ zindex: 300,
+			\ drag: 0,
+			\ highlight: a:arglist[0],
+			\ border: [],
+			\ close: 'click',
+			\ padding: [0,1,0,1],
+			\ })
+	endif
+endfunction
+
+function TerminalGetEnvVariables()
+
 	let envs = {}
 
 	let envs['BASH_SILENCE_DEPRECATION_WARNING'] = 1 " silence the deprecation bash stuff in macos
@@ -106,84 +188,9 @@ HEREDOC
 
 	let envs['BASH_FUNC___prompt_command%%'] = join(prompt_command, "\n")
 
-	let current_dir = a:path
-	if(a:path == v:none)
-		let current_dir = expand('%:p:h') " start in the same directory as the file we are in
-	endif
-
-	let term_name = printf('Terminal 0x%02hX', rand(srand()) % 153) "Terminal 0x(0-99)
-
-	let options = {} " New dictionary
-	let options['term_name'] = term_name " all terminals have this name
-	let options['term_api'] = "Terminal" " all functions have to be called TerminalXXX from inside the call/drop function
-	" doesnt work - let options['term_finish'] = "close" " close as soon as the main process finishes
-	let options['hidden'] = 1 " start in a hidden buffer
-	let options['cwd'] = current_dir
-	let options['term_kill'] = "hup"
-	let options['env'] = envs
-	
-	let s:buf = term_start(['/bin/bash'], options)
-
-	" Switch to the hidden buffer
-	exec "buffer! ".s:buf
+	return envs
 endfunction
 
-function TerminalOpen(bufnum, arglist)
-	if len(a:arglist) == 1
-		" return to normal mode
-		call feedkeys("\<C-W>N")
-		" arglist[0] - full filename canonical path
-		call feedkeys(":badd ".a:arglist[0]."\<CR>")
-		" switch to new buffer
-		call feedkeys(":b! ".a:arglist[0]."\<CR>")
-	endif
-endfunction
-
-function TerminalClose(bufnum, arglist)
-	if len(a:arglist) == 0
-		" return to normal mode
-		call feedkeys("\<C-W>N")
-		" close buffer
-		call feedkeys(":bd! ".a:bufnum."\<CR>")	
-	endif
-endfunction
-
-function TerminalNormalMode(bufnum, arglist)
-	if len(a:arglist) == 0
-		" return to normal mode
-		call feedkeys("\<C-W>N")
-	endif
-endfunction
-
-function TerminalDuplicate(bufnum, arglist)
-	if len(a:arglist) == 1
-		" return to normal mode
-		call feedkeys("\<C-W>N")
-		" open new terminal
-		call feedkeys(":call Terminal(\"".a:arglist[0]."\")"."\<CR>")
-	endif
-endfunction
-
-function TerminalNotification(bufnum, arglist)
-	if len(a:arglist) == 2
-		" popup stating the error
-		call popup_create(a:arglist[1], #{
-			\ line: 2,
-			\ col: 1000000,
-			\ pos: 'topright',
-			\ minwidth: 1,
-			\ time: 3000,
-			\ title: ' notification ',
-			\ tabpage: -1,
-			\ zindex: 300,
-			\ drag: 0,
-			\ highlight: a:arglist[0],
-			\ border: [],
-			\ close: 'click',
-			\ padding: [0,1,0,1],
-			\ })
-	endif
-endfunction
 
 command Terminal call Terminal()
 
