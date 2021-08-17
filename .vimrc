@@ -80,6 +80,9 @@ call plug#begin(g:vimmagikarpfolder.'/plugged')
 	" Pretty icons
 	Plug 'ryanoasis/vim-devicons'
 
+	" Simple alias and basic :command substitution
+	Plug 'Konfekt/vim-alias'
+
 	" My own custom functions and configurations
 	Plug 'magikarp-salesman/magikarp.vim'
 

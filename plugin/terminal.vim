@@ -1,12 +1,9 @@
 " Open terminal in new buffer
 " ----
 "
-function Terminal(path = v:none)
+function Terminal(...)
 
-	let current_dir = a:path
-	if(a:path == v:none)
-		let current_dir = expand('%:p:h') " start in the same directory as the file we are in
-	endif
+	let current_dir = a:0 > 0 ? a:1 : expand('%:p:h') " start in the same directory as the file we are in
 
 	let term_name = printf('Terminal 0x%02hX', rand(srand()) % 153) "Terminal 0x(0-99)
 	let envs = TerminalGetEnvVariables()
@@ -19,8 +16,9 @@ function Terminal(path = v:none)
 	let options['cwd'] = current_dir
 	let options['term_kill'] = "hup"
 	let options['env'] = envs
+	let options['ansi_colors'] = ['#000000', '#e00000', '#00e000', '#e0e000', '#0063ff', '#e000e0', '#00e0e0', '#e0e0e0', '#808080', '#ff4040', '#40ff40', '#ffff40', '#4040ff', '#ff40ff', '#40ffff', '#ffffff']
 	
-	let s:buf = term_start(['/bin/bash'], options)
+	let s:buf = term_start(['/usr/local/bin/bash'], options)
 
 	" Switch to the hidden buffer
 	exec "buffer! ".s:buf
@@ -34,6 +32,27 @@ function TerminalOpen(bufnum, arglist)
 		call feedkeys(":badd ".a:arglist[0]."\<CR>")
 		" switch to new buffer
 		call feedkeys(":b! ".a:arglist[0]."\<CR>")
+	endif
+endfunction
+
+function TerminalExecute(bufnum, arglist)
+	if len(a:arglist) == 1
+		" return to normal mode
+		call feedkeys("\<C-W>N")
+		" run the given comand and press enter
+		echom ":".a:arglist[0]."\<CR>"
+		call feedkeys(":".a:arglist[0]."\<CR>")
+	endif
+endfunction
+
+function TerminalMan(bufnum, arglist)
+	if len(a:arglist) == 1
+		" return to normal mode
+		call feedkeys("\<C-W>N")
+		" open the given man page
+		call feedkeys(":Man ".a:arglist[0]."\<CR>")
+		" make it fullscreen
+		call feedkeys(":only!\<CR>")
 	endif
 endfunction
 
@@ -88,6 +107,7 @@ function TerminalGetEnvVariables()
 	let envs = {}
 
 	let envs['BASH_SILENCE_DEPRECATION_WARNING'] = 1 " silence the deprecation bash stuff in macos
+	let envs['DO_NOT_TRACK'] = 1 " please do not track using telemetry
 
 	" commands to communicate with vim
 	let envs['BASH_FUNC_vim%%'] = '() { FILEPATH=$(grealpath $1) ; echo -en "\0033]51;[\"call\",\"TerminalOpen\",[\"$FILEPATH\"]]\a" ; }'
@@ -96,6 +116,8 @@ function TerminalGetEnvVariables()
 	let envs['BASH_FUNC_normal%%'] = '() {  echo -en "\0033]51;[\"call\",\"TerminalNormalMode\",[]]\a" ; }'
 	let envs['BASH_FUNC_error%%'] = '() { echo -en "\0033]51;[\"call\",\"TerminalNotification\",[\"ErrorMsg\",\"${1}\"]]\a" ; }'
 	let envs['BASH_FUNC_warn%%'] = '() { echo -en "\0033]51;[\"call\",\"TerminalNotification\",[\"Wildmenu\",\"${1}\"]]\a" ; }'
+	let envs['BASH_FUNC_:%%'] = '() { echo -en "\0033]51;[\"call\",\"TerminalExecute\",[\"${*}\"]]\a" ; }'
+	let envs['BASH_FUNC_man%%'] = '() { echo -en "\0033]51;[\"call\",\"TerminalMan\",[\"${1}\"]]\a" ; }'
 	let envs['BASH_FUNC_terminal%%'] = '() { DIRECTORY=$(pwd) ; echo -en "\0033]51;[\"call\",\"TerminalDuplicate\",[\"$DIRECTORY\"]]\a" ; }'
 	
 	let envs['BASH_FUNC___vim-wait%%'] = '() { FILEPATH=$(grealpath $1) ; echo -en "\0033]51;[\"call\",\"TerminalOpen\",[\"$FILEPATH\"]]\a" ; read -n 1 -s -r ; }'
@@ -106,10 +128,13 @@ function TerminalGetEnvVariables()
 	let envs['EDITOR'] = 'vim'
 
 	" set less options
-	let envs['LESS'] = '--chop-long-lines'
+	let envs['LESS'] = '--chop-long-lines -R'
 
 	" set ls options
 	let envs['CLICOLOR'] = 1
+
+	" yes we have color..
+	let envs['COLORTERM'] = 'truecolor'
 
 	" commands to set up bash
 	let envs['PROMPT_COMMAND'] = '__prompt_command'
@@ -117,10 +142,12 @@ function TerminalGetEnvVariables()
 	() {
 		cat << 'HEREDOC' > ~/.vim_magikarp/.vimwait
 #!/bin/bash
+set -eo pipefail
 vim "$1"
 read -n 1 -s -r
 HEREDOC
 		chmod a+x ~/.vim_magikarp/.vimwait
+		complete -W "$(~/.vim_magikarp/tldr 2>/dev/null --list)" tldr
 		unset __init
 	}
 	EOF
@@ -130,6 +157,7 @@ HEREDOC
 		alias vi=vim
 		alias v=vim
 		alias vmi=vim
+		alias edit=vim
 		alias time_on="export VIEW_DATE=On"
 		alias time_off="unset VIEW_DATE"
 		alias shortpath_on="export SHORT_PATH=On"
@@ -170,7 +198,7 @@ HEREDOC
 		else
 			ERROR="${GREEN}"
 		fi
-		if [ $ERROR_RC -gt 0 ]; then
+		if [ $ERROR_RC -gt 0 ] && [ $ERROR_RC -ne 127 ]; then
 			error "code $ERROR_RC"
 		fi
 		if [ $SHORT_PATH ];then
@@ -185,12 +213,29 @@ HEREDOC
 		history -a # save history immediately
 	}
 	EOF
+	let handle_unknown_command =<< trim EOF
+	() {
+		error "🤷 '$1' not found"
+		return 127
+	}
+	EOF
+
+	let tldr =<< trim EOF
+	() {
+		tldr_script=~/.vim_magikarp/tldr
+		tldr_source=https://raw.githubusercontent.com/raylee/tldr/master/tldr
+		[ -f $tldr_script ] || curl -L -o $tldr_script $tldr_source
+		chmod u+x $tldr_script
+		$tldr_script $1
+	}
+	EOF
+	let envs['BASH_FUNC_tldr%%'] = join(tldr, "\n")
 
 	let envs['BASH_FUNC___prompt_command%%'] = join(prompt_command, "\n")
+	let envs['BASH_FUNC_command_not_found_handle%%'] = join(handle_unknown_command, "\n")
 
 	return envs
 endfunction
-
 
 command Terminal call Terminal()
 

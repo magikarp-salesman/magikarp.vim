@@ -14,6 +14,12 @@ if isdirectory(expand(g:vimmagikarpfolder.'/plugged'))
 	" save buffer and close
 	nnoremap <Leader>wd :w<CR>:bd<CR>
 
+	" follow link/tag in manual pages
+	nnoremap <Leader>f :call FollowPage()<CR>
+
+	" execute line under the cursor as a command
+	nnoremap <leader>el yy:@"<CR>
+
 	" omni completion ctrl+x ctrl+o to call in insert mode
 	filetype plugin on
 	set omnifunc=syntaxcomplete#Complete
@@ -24,7 +30,17 @@ if isdirectory(expand(g:vimmagikarpfolder.'/plugged'))
 	inoremap <expr> <PageDown> pumvisible() ? "\<PageDown>\<C-p>\<C-n>" : "\<PageDown>"
 	inoremap <expr> <PageUp>   pumvisible() ? "\<PageUp>\<C-p>\<C-n>" : "\<PageUp>"
 	
+	" change :x to save and close the buffer instead
+	"
+	if exists('g:loaded_cmdalias')
+		call feedkeys(":Alias x :silent!w<CR>:bd!<CR>\<CR>")
+	endif
 endif
+
+
+function! FollowPage()
+	call feedkeys("\<C-]>\<CR>")
+endfunction
 
 " Fix 'gx' (open link under the cursor) to work again
 " https://vimtricks.com/p/open-url-under-cursor
