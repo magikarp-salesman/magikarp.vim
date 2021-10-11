@@ -33,7 +33,7 @@ if isdirectory(expand(g:vimmagikarpfolder.'/plugged'))
 	" change :x to save and close the buffer instead
 	"
 	if exists('g:loaded_cmdalias')
-		call feedkeys(":Alias x :silent!w<CR>:bd!<CR>\<CR>")
+		execute("Alias x :silent!w<CR>:bd!<CR>")
 	endif
 endif
 

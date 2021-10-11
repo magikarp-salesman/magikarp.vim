@@ -18,7 +18,7 @@ function Terminal(...)
 	let options['env'] = envs
 	let options['ansi_colors'] = ['#000000', '#e00000', '#00e000', '#e0e000', '#0063ff', '#e000e0', '#00e0e0', '#e0e0e0', '#808080', '#ff4040', '#40ff40', '#ffff40', '#4040ff', '#ff40ff', '#40ffff', '#ffffff']
 	
-	let s:buf = term_start(['/usr/local/bin/bash'], options)
+	let s:buf = term_start(['/bin/bash'], options)
 
 	" Switch to the hidden buffer
 	exec "buffer! ".s:buf
@@ -112,7 +112,7 @@ function TerminalGetEnvVariables()
 	" commands to communicate with vim
 	let envs['BASH_FUNC_vim%%'] = '() { FILEPATH=$(grealpath $1) ; echo -en "\0033]51;[\"call\",\"TerminalOpen\",[\"$FILEPATH\"]]\a" ; }'
 	let envs['BASH_FUNC_new%%'] = '() { touch $1 && FILEPATH=$(grealpath $1) && echo -en "\0033]51;[\"call\",\"TerminalOpen\",[\"$FILEPATH\"]]\a" ; }'
-	let envs['BASH_FUNC_exit%%'] = '() { echo -en "\0033]51;[\"call\",\"TerminalClose\",[]]\a" ; }'
+	let envs['BASH_FUNC_exit_special%%'] = '() { echo -en "\0033]51;[\"call\",\"TerminalClose\",[]]\a" ; }'
 	let envs['BASH_FUNC_normal%%'] = '() {  echo -en "\0033]51;[\"call\",\"TerminalNormalMode\",[]]\a" ; }'
 	let envs['BASH_FUNC_error%%'] = '() { echo -en "\0033]51;[\"call\",\"TerminalNotification\",[\"ErrorMsg\",\"${1}\"]]\a" ; }'
 	let envs['BASH_FUNC_warn%%'] = '() { echo -en "\0033]51;[\"call\",\"TerminalNotification\",[\"Wildmenu\",\"${1}\"]]\a" ; }'
@@ -135,6 +135,7 @@ function TerminalGetEnvVariables()
 
 	" yes we have color..
 	let envs['COLORTERM'] = 'truecolor'
+	let envs['COLORS'] = '256'
 
 	" commands to set up bash
 	let envs['PROMPT_COMMAND'] = '__prompt_command'
@@ -164,6 +165,7 @@ HEREDOC
 		alias shortpath_off="unset SHORT_PATH"
 		alias ls="ls -l"
 		alias la="ls -la"
+		alias exit="exit_special"
 	}
 	EOF
 	let envs['BASH_FUNC___alias%%'] = join(alias,"\n")
@@ -175,13 +177,14 @@ HEREDOC
 		RED='\[\033[31m\]'
 		GREEN='\[\033[32m\]'
 		YELLOW='\[\033[33m\]'
+		WHITE='\[\033[37m\]'
 		RESET='\[\033[0m\]'
 		HIDDEN='\[\033[38;5;239m\]'
 		DIM='\[\033[2m\]'
 		DATE_TIME=""
 		if [ $VIEW_DATE ];then
 			date_var=`date -u +%Y%m%d-%H:%M:%S%Z`
-			DATE_TIME="${DIM}${date_var}${RESET} "
+			DATE_TIME="${DIM}${WHITE}${date_var}${RESET} "
 		fi
 		if [ $VI_MODE ];then
 			VIM_ENABLED="${RED}${RESET}"
@@ -229,7 +232,19 @@ HEREDOC
 		$tldr_script $1
 	}
 	EOF
+
+	let cht =<< trim EOF
+	() {
+		cht_script=~/.vim_magikarp/cht.sh
+		cht_source=https://cht.sh/:cht.sh
+		[ -f $cht_script ] || curl -L -o $cht_script $cht_source
+		chmod u+x $cht_script
+		$cht_script $*
+	}
+	EOF
+
 	let envs['BASH_FUNC_tldr%%'] = join(tldr, "\n")
+	let envs['BASH_FUNC_cheat%%'] = join(cht, "\n")
 
 	let envs['BASH_FUNC___prompt_command%%'] = join(prompt_command, "\n")
 	let envs['BASH_FUNC_command_not_found_handle%%'] = join(handle_unknown_command, "\n")
@@ -237,6 +252,20 @@ HEREDOC
 	return envs
 endfunction
 
-command Terminal call Terminal()
+function PrintTerminalEnvs()
+	let envs = TerminalGetEnvVariables()
+	echo('#!/bin/bash')
+     	for key in keys(envs)
+		if(key =~ "^BASH_FUNC_")
+			let substr1 = split(key, "BASH_FUNC_")
+			let substr2 = split(substr1[0], "%%")
+        		echo(substr2[0]. envs[key])
+		else
+			echo(key . '=' . "'" . envs[key] . "'")
+		endif
+        endfor
+endfunction
 
+command Terminal call Terminal()
+command PrintTerminalEnvs call PrintTerminalEnvs()
 " vim : ft=vim syntax=on nowrap

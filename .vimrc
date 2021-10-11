@@ -1,11 +1,21 @@
-"true" ; echo "Installing vim-plug ..."
 "true" ; set -e
+"true" ; if [ "$1" == "envs" ]; then
+"true" ; 	echo "Sourcing :Terminal environment"
+"true" ; 	tmp_file=$(mktemp)
+"true" ; 	vim -c 'set nomore' -c "redir >> ${tmp_file}" -c 'PrintTerminalEnvs' -c 'q'
+"true" ; 	set -o allexport; source ${tmp_file}; set +o allexport
+"true" ; 	set +e && return 0
+"true" ; fi 
+"true" ; echo "Installing vim-plug ..."
 "true" ; [ ! -f ~/.vim_magikarp/autoload/plug.vim ] && curl -fLo ~/.vim_magikarp/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 "true" ; git config --global core.autocrlf input
 "true" ; echo "Running PlugInstall ..."
 "true" ; vim +"PlugInstall --sync"  +qall
 "true" ; [ ! -f ~/.vim_magikarp/colors ] && mkdir -p ~/.vim_magikarp/colors && cp ~/.vim_magikarp/plugged/vim-colorschemes/colors/* ~/.vim_magikarp/colors
 "true" ; echo "Finished installing vim-plug."
+"true" ; echo ""
+"true" ; echo "To source the :Terminal bash envs run:"
+"true" ; echo "	source ~/.vimrc envs"
 "true" ; set +e && exit 0
 
 " We will be storing the packages and configurations on a different folder
