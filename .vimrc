@@ -1,10 +1,13 @@
 "true" ; set -e
 "true" ; if [ "$1" == "envs" ]; then
-"true" ; 	echo "Sourcing :Terminal environment"
-"true" ; 	tmp_file=$(mktemp)
-"true" ; 	vim -c 'set nomore' -c "redir >> ${tmp_file}" -c 'PrintTerminalEnvs' -c 'q'
-"true" ; 	set -o allexport; source ${tmp_file}; set +o allexport
-"true" ; 	set +e && return 0
+"true" ; 	if [ -z "$VIM" ]; then
+"true" ; 		echo "Sourcing :Terminal environment"
+"true" ; 		tmp_file=$(mktemp)
+"true" ; 		\vim -c 'set nomore' -c "redir >> ${tmp_file}" -c 'PrintTerminalEnvs' -c 'q'
+"true" ; 		set -o allexport; source ${tmp_file}; set +o allexport
+"true" ; 		rm "${tmp_file}"
+"true" ;	fi
+"true" ;	set +e && return 0
 "true" ; fi 
 "true" ; echo "Installing vim-plug ..."
 "true" ; [ ! -f ~/.vim_magikarp/autoload/plug.vim ] && curl -fLo ~/.vim_magikarp/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim

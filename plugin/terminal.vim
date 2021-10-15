@@ -136,7 +136,7 @@ function TerminalGetEnvVariables()
 	" yes we have color..
 	let envs['COLORTERM'] = 'truecolor'
 	let envs['COLORS'] = '256'
-
+	
 	" commands to set up bash
 	let envs['PROMPT_COMMAND'] = '__prompt_command'
 	let init =<< trim EOF
@@ -165,15 +165,34 @@ HEREDOC
 		alias shortpath_off="unset SHORT_PATH"
 		alias ls="ls -l"
 		alias la="ls -la"
+		silent which gls && alias ls="gls --color=auto -l --group-directories-first"
+		silent which gls && alias la="gls --color=auto -lA"
 		alias exit="exit_special"
 	}
 	EOF
+	let unset_vim_funcs =<< trim EOF
+	() {
+		if [ -z "$VIM" ]; then
+			unset vim
+			unset new
+			unset normal
+			unset terminal
+			unset exit_special
+			unset man
+			unalias exit
+			alias :='true'
+			alias __vim-wait='true'
+		fi
+	}
+	EOF
+
 	let envs['BASH_FUNC___alias%%'] = join(alias,"\n")
+	let envs['BASH_FUNC___unset_vim_funcs%%'] = join(unset_vim_funcs,"\n")
 
 	let prompt_command =<< trim EOF
 	() {	
 		ERROR_RC="${?}"
-		set -e
+		# set -e
 		RED='\[\033[31m\]'
 		GREEN='\[\033[32m\]'
 		YELLOW='\[\033[33m\]'
@@ -210,8 +229,12 @@ HEREDOC
 			SPATH='\w'
 		fi
 		export PS1="${RESET}${DATE_TIME}\u${H_NAME}${VIM_ENABLED}${GREEN}${SPATH} ${ERROR}\\$ ${RESET}"
-		__alias # run alias
-		LC_ALL=C type __init 2>/dev/null 1>/dev/null && __init
+		if [ -z "$ALREADY_INITIALIZED" ]; then
+			__alias
+			__unset_vim_funcs
+			ALREADY_INITIALIZED=1
+		fi
+		LC_ALL=C silent type __init && __init
 		set +e
 		history -a # save history immediately
 	}
@@ -243,8 +266,15 @@ HEREDOC
 	}
 	EOF
 
+	let silent =<< trim EOF
+	() {
+		$@ 2>/dev/null >/dev/null
+	}
+	EOF
+
 	let envs['BASH_FUNC_tldr%%'] = join(tldr, "\n")
 	let envs['BASH_FUNC_cheat%%'] = join(cht, "\n")
+	let envs['BASH_FUNC_silent%%'] = join(silent, "\n")
 
 	let envs['BASH_FUNC___prompt_command%%'] = join(prompt_command, "\n")
 	let envs['BASH_FUNC_command_not_found_handle%%'] = join(handle_unknown_command, "\n")
