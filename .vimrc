@@ -4,7 +4,7 @@
 "true" ; 		echo "Sourcing :Terminal environment"
 "true" ; 		tmp_file=$(mktemp)
 "true" ; 		\vim -c 'set nomore' -c "redir >> ${tmp_file}" -c 'PrintTerminalEnvs' -c 'q'
-"true" ; 		set -o allexport; source ${tmp_file}; set +o allexport
+"true" ; 		set -o allexport; source ${tmp_file}; set +o allexport; clear
 "true" ; 		rm "${tmp_file}"
 "true" ;	fi
 "true" ;	set +e && return 0
@@ -13,7 +13,7 @@
 "true" ; [ ! -f ~/.vim_magikarp/autoload/plug.vim ] && curl -fLo ~/.vim_magikarp/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 "true" ; git config --global core.autocrlf input
 "true" ; echo "Running PlugInstall ..."
-"true" ; vim +"PlugInstall --sync"  +qall
+"true" ; \vim +"PlugInstall --sync"  +qall
 "true" ; [ ! -f ~/.vim_magikarp/colors ] && mkdir -p ~/.vim_magikarp/colors && cp ~/.vim_magikarp/plugged/vim-colorschemes/colors/* ~/.vim_magikarp/colors
 "true" ; echo "Finished installing vim-plug."
 "true" ; echo ""

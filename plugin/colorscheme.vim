@@ -7,4 +7,10 @@ if ($TERM == "xterm-256color") || (has("gui_macvim"))
 	endif
 endif
 
+" Workaround for IntelliJ embedded terminals
+if ($INTELLIJ == "1")
+	colorscheme Light
+	hi Normal guibg=NONE ctermbg=NONE
+endif
+
 " vim : ft=vim syntax=on nowrap

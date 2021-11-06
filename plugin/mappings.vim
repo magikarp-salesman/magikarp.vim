@@ -33,10 +33,19 @@ if isdirectory(expand(g:vimmagikarpfolder.'/plugged'))
 	" change :x to save and close the buffer instead
 	"
 	if exists('g:loaded_cmdalias')
-		execute("Alias x :silent!w<CR>:bd!<CR>")
+		execute "Alias x :call\\ ReplaceXToWQIfLastBufferOrElseWBD()"
 	endif
 endif
 
+function! ReplaceXToWQIfLastBufferOrElseWBD()
+	let s:numberOfBuffers = len(getbufinfo({'buflisted':1}))
+	if (s:numberOfBuffers > 1)
+		execute "silent!w"
+		execute "bd"
+	else
+		execute "silent!wq"
+	endif	
+endfunction
 
 function! FollowPage()
 	call feedkeys("\<C-]>\<CR>")

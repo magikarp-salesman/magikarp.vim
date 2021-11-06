@@ -5,7 +5,7 @@ function Terminal(...)
 
 	let current_dir = a:0 > 0 ? a:1 : expand('%:p:h') " start in the same directory as the file we are in
 
-	let term_name = printf('Terminal 0x%02hX', rand(srand()) % 153) "Terminal 0x(0-99)
+	let term_name = printf('Terminal 0x%02hX', s:randnum(153)) "Terminal 0x(0-99)
 	let envs = TerminalGetEnvVariables()
 
 	let options = {} " New dictionary
@@ -84,16 +84,15 @@ endfunction
 function TerminalNotification(bufnum, arglist)
 	if len(a:arglist) == 2
 		" popup stating the error
-		call popup_create(a:arglist[1], #{
-			\ line: 2,
-			\ col: 1000000,
+		call popup_notification(a:arglist[1], #{
+			\ col: 100000,
 			\ pos: 'topright',
-			\ minwidth: 1,
+			\ minwidth: 14,
 			\ time: 3000,
 			\ title: ' notification ',
 			\ tabpage: -1,
 			\ zindex: 300,
-			\ drag: 0,
+			\ drag: 1,
 			\ highlight: a:arglist[0],
 			\ border: [],
 			\ close: 'click',
@@ -167,7 +166,7 @@ HEREDOC
 		alias la="ls -la"
 		silent which gls && alias ls="gls --color=auto -l --group-directories-first"
 		silent which gls && alias la="gls --color=auto -lA"
-		alias exit="exit_special"
+		# alias exit="exit_special"
 	}
 	EOF
 	let unset_vim_funcs =<< trim EOF
@@ -179,9 +178,11 @@ HEREDOC
 			unset terminal
 			unset exit_special
 			unset man
-			unalias exit
+			alias exit="exit"
 			alias :='true'
 			alias __vim-wait='true'
+			unset FCEDIT
+			unset GIT_EDITOR
 		fi
 	}
 	EOF
@@ -298,4 +299,11 @@ endfunction
 
 command Terminal call Terminal()
 command PrintTerminalEnvs call PrintTerminalEnvs()
+
+" For older versions of vim
+function! s:randnum(max) abort
+  return str2nr(matchstr(reltimestr(reltime()), '\v\.@<=\d+')[1:]) % a:max
+endfunction
+
+
 " vim : ft=vim syntax=on nowrap
