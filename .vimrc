@@ -1,10 +1,10 @@
-"true" ; set -e
+"true" ; set -e;
 "true" ; if [ "$1" == "envs" ]; then
 "true" ; 	if [ -z "$VIM" ]; then
 "true" ; 		echo "Sourcing :Terminal environment"
 "true" ; 		tmp_file=$(mktemp)
 "true" ; 		\vim -c 'set nomore' -c "redir >> ${tmp_file}" -c 'PrintTerminalEnvs' -c 'q'
-"true" ; 		set -o allexport; source ${tmp_file}; set +o allexport; clear
+"true" ; 		set -o allexport; source ${tmp_file}; set +o allexport
 "true" ; 		rm "${tmp_file}"
 "true" ;	fi
 "true" ;	set +e && return 0
@@ -65,7 +65,7 @@ endif
 let g:airline#extensions#tabline#enabled = 1
 let g:airline#extensions#branch#enabled = 0
 let g:airline_powerline_fonts = 1
-let g:airline_theme='powerlineish'
+let g:airline_theme = 'magikarpish' " alternatives: biogoo, powerlineish, distinguished, zenburn
 
 " Specify a directory for plugins
 " - For Neovim: ~/.local/share/nvim/plugged

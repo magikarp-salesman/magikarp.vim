@@ -109,8 +109,8 @@ function TerminalGetEnvVariables()
 	let envs['DO_NOT_TRACK'] = 1 " please do not track using telemetry
 
 	" commands to communicate with vim
-	let envs['BASH_FUNC_vim%%'] = '() { FILEPATH=$(grealpath $1) ; echo -en "\0033]51;[\"call\",\"TerminalOpen\",[\"$FILEPATH\"]]\a" ; }'
-	let envs['BASH_FUNC_new%%'] = '() { touch $1 && FILEPATH=$(grealpath $1) && echo -en "\0033]51;[\"call\",\"TerminalOpen\",[\"$FILEPATH\"]]\a" ; }'
+	let envs['BASH_FUNC_vim%%'] = '() { FILEPATH=$(getrealpath $1) ; echo -en "\0033]51;[\"call\",\"TerminalOpen\",[\"$FILEPATH\"]]\a" ; }'
+	let envs['BASH_FUNC_new%%'] = '() { touch $1 && FILEPATH=$(getrealpath $1) && echo -en "\0033]51;[\"call\",\"TerminalOpen\",[\"$FILEPATH\"]]\a" ; }'
 	let envs['BASH_FUNC_exit_special%%'] = '() { echo -en "\0033]51;[\"call\",\"TerminalClose\",[]]\a" ; }'
 	let envs['BASH_FUNC_normal%%'] = '() {  echo -en "\0033]51;[\"call\",\"TerminalNormalMode\",[]]\a" ; }'
 	let envs['BASH_FUNC_error%%'] = '() { echo -en "\0033]51;[\"call\",\"TerminalNotification\",[\"ErrorMsg\",\"${1}\"]]\a" ; }'
@@ -119,7 +119,7 @@ function TerminalGetEnvVariables()
 	let envs['BASH_FUNC_man%%'] = '() { echo -en "\0033]51;[\"call\",\"TerminalMan\",[\"${1}\"]]\a" ; }'
 	let envs['BASH_FUNC_terminal%%'] = '() { DIRECTORY=$(pwd) ; echo -en "\0033]51;[\"call\",\"TerminalDuplicate\",[\"$DIRECTORY\"]]\a" ; }'
 	
-	let envs['BASH_FUNC___vim-wait%%'] = '() { FILEPATH=$(grealpath $1) ; echo -en "\0033]51;[\"call\",\"TerminalOpen\",[\"$FILEPATH\"]]\a" ; read -n 1 -s -r ; }'
+	let envs['BASH_FUNC___vim-wait%%'] = '() { FILEPATH=$(getrealpath $1) ; echo -en "\0033]51;[\"call\",\"TerminalOpen\",[\"$FILEPATH\"]]\a" ; read -n 1 -s -r ; }'
 
 	" change editors
 	let envs['FCEDIT'] = g:vimmagikarpfolder.'/.vimwait'
@@ -166,7 +166,7 @@ HEREDOC
 		alias la="ls -la"
 		silent which gls && alias ls="gls --color=auto -l --group-directories-first"
 		silent which gls && alias la="gls --color=auto -lA"
-		# alias exit="exit_special"
+		alias exit="exit_special"
 	}
 	EOF
 	let unset_vim_funcs =<< trim EOF
@@ -272,10 +272,22 @@ HEREDOC
 		$@ 2>/dev/null >/dev/null
 	}
 	EOF
+	
+	let getrealpath =<< trim EOF
+        () {
+                silent which grealpath
+                if [ $? == 0 ]; then
+			grealpath $1
+		else
+			realpath $1
+		fi
+        }
+	EOF
 
 	let envs['BASH_FUNC_tldr%%'] = join(tldr, "\n")
 	let envs['BASH_FUNC_cheat%%'] = join(cht, "\n")
 	let envs['BASH_FUNC_silent%%'] = join(silent, "\n")
+	let envs['BASH_FUNC_getrealpath%%'] = join(getrealpath, "\n")
 
 	let envs['BASH_FUNC___prompt_command%%'] = join(prompt_command, "\n")
 	let envs['BASH_FUNC_command_not_found_handle%%'] = join(handle_unknown_command, "\n")
