@@ -136,6 +136,9 @@ function TerminalGetEnvVariables()
 	let envs['COLORTERM'] = 'truecolor'
 	let envs['COLORS'] = '256'
 	
+	" disable docker buildkit
+	let envs['DOCKER_BUILDKIT'] = '0'
+	
 	" commands to set up bash
 	let envs['PROMPT_COMMAND'] = '__prompt_command'
 	let init =<< trim EOF
@@ -283,11 +286,18 @@ HEREDOC
 		fi
         }
 	EOF
+	
+	let whatismyip =<< trim EOF
+        () {
+		wget -O - -q https://checkip.amazonaws.com
+        }
+	EOF
 
 	let envs['BASH_FUNC_tldr%%'] = join(tldr, "\n")
 	let envs['BASH_FUNC_cheat%%'] = join(cht, "\n")
 	let envs['BASH_FUNC_silent%%'] = join(silent, "\n")
 	let envs['BASH_FUNC_getrealpath%%'] = join(getrealpath, "\n")
+	let envs['BASH_FUNC_what_is_my_ip%%'] = join(whatismyip, "\n")
 
 	let envs['BASH_FUNC___prompt_command%%'] = join(prompt_command, "\n")
 	let envs['BASH_FUNC_command_not_found_handle%%'] = join(handle_unknown_command, "\n")
