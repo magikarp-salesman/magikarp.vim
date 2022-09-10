@@ -18,7 +18,7 @@ function Terminal(...)
 	let options['env'] = envs
 	let options['ansi_colors'] = ['#000000', '#e00000', '#00e000', '#e0e000', '#0063ff', '#e000e0', '#00e0e0', '#e0e0e0', '#808080', '#ff4040', '#40ff40', '#ffff40', '#4040ff', '#ff40ff', '#40ffff', '#ffffff']
 	
-	let s:buf = term_start(['/bin/bash'], options)
+	let s:buf = term_start(['/usr/local/bin/bash'], options)
 
 	" Switch to the hidden buffer
 	exec "buffer! ".s:buf
@@ -166,10 +166,13 @@ HEREDOC
 		alias shortpath_on="export SHORT_PATH=On"
 		alias shortpath_off="unset SHORT_PATH"
 		alias ls="ls -l"
+		alias lsa="ls -la"
+		alias ll="ls -l"
 		alias la="ls -la"
 		silent which gls && alias ls="gls --color=auto -l --group-directories-first"
 		silent which gls && alias la="gls --color=auto -lA"
 		alias exit="exit_special"
+		alias Terminal="vim -c ':Terminal'"
 	}
 	EOF
 	let unset_vim_funcs =<< trim EOF
@@ -186,6 +189,7 @@ HEREDOC
 			alias __vim-wait='true'
 			unset FCEDIT
 			unset GIT_EDITOR
+			unset -f command_not_found_handle
 		fi
 	}
 	EOF
