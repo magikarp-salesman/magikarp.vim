@@ -81,6 +81,21 @@ function TerminalDuplicate(bufnum, arglist)
 	endif
 endfunction
 
+function TerminalShowText(bufnum, arglist)
+	# TODO: fix /n in dialog
+	# dialog should have the max-width: width - 4 max-height: height - 2
+	# dialog should be closable and focused
+	# better base64 solution and using a plugin to make it portable
+
+	if len(a:arglist) == 2
+		" popup with custom text
+		" decode base64 argument
+		
+		let l:messageDecoded = system('base64 --decode', a:arglist[1])
+		call popup_dialog(l:messageDecoded, {})
+	endif
+endfunction
+
 function TerminalNotification(bufnum, arglist)
 	if len(a:arglist) == 2
 		" popup stating the error
@@ -115,6 +130,7 @@ function TerminalGetEnvVariables()
 	let envs['BASH_FUNC_normal%%'] = '() {  echo -en "\0033]51;[\"call\",\"TerminalNormalMode\",[]]\a" ; }'
 	let envs['BASH_FUNC_error%%'] = '() { echo -en "\0033]51;[\"call\",\"TerminalNotification\",[\"ErrorMsg\",\"${1}\"]]\a" ; }'
 	let envs['BASH_FUNC_warn%%'] = '() { echo -en "\0033]51;[\"call\",\"TerminalNotification\",[\"Wildmenu\",\"${1}\"]]\a" ; }'
+	let envs['BASH_FUNC_peek%%'] = '() { myVar=$(cat ${1} | base64) ; echo -en "\0033]51;[\"call\",\"TerminalShowText\",[\"Wildmenu\",\"${myVar}\"]]\a" ; }'
 	let envs['BASH_FUNC_:%%'] = '() { echo -en "\0033]51;[\"call\",\"TerminalExecute\",[\"${*}\"]]\a" ; }'
 	let envs['BASH_FUNC_man%%'] = '() { echo -en "\0033]51;[\"call\",\"TerminalMan\",[\"${1}\"]]\a" ; }'
 	let envs['BASH_FUNC_terminal%%'] = '() { DIRECTORY=$(pwd) ; echo -en "\0033]51;[\"call\",\"TerminalDuplicate\",[\"$DIRECTORY\"]]\a" ; }'
@@ -169,10 +185,12 @@ HEREDOC
 		alias lsa="ls -la"
 		alias ll="ls -l"
 		alias la="ls -la"
-		silent which gls && alias ls="gls --color=auto -l --group-directories-first"
-		silent which gls && alias la="gls --color=auto -lA"
+		silent which unbuffer && alias faketty="unbuffer -p"
+		silent which gls && silent which unbuffer && alias ls="unbuffer -p gls --color=auto -l --group-directories-first"
+		silent which gls && silent which unbuffer && alias la="unbuffer -p gls --color=auto -lA"
 		alias exit="exit_special"
 		alias Terminal="vim -c ':Terminal'"
+		alias split="parallel --keep-order --pipe -N1"
 	}
 	EOF
 	let unset_vim_funcs =<< trim EOF
