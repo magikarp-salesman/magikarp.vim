@@ -191,6 +191,7 @@ HEREDOC
 		alias exit="exit_special"
 		alias Terminal="vim -c ':Terminal'"
 		alias split="parallel --keep-order --pipe -N1"
+		alias gti=git
 	}
 	EOF
 	let unset_vim_funcs =<< trim EOF
@@ -315,11 +316,18 @@ HEREDOC
         }
 	EOF
 
+	let clearscrollback =<< trim EOF
+	() {
+		echo -e '\e]1337;ClearScrollback\e\\' && clear
+	}
+	EOF
+
 	let envs['BASH_FUNC_tldr%%'] = join(tldr, "\n")
 	let envs['BASH_FUNC_cheat%%'] = join(cht, "\n")
 	let envs['BASH_FUNC_silent%%'] = join(silent, "\n")
 	let envs['BASH_FUNC_getrealpath%%'] = join(getrealpath, "\n")
 	let envs['BASH_FUNC_what_is_my_ip%%'] = join(whatismyip, "\n")
+	let envs['BASH_FUNC_clear_scrollback%%'] = join(clearscrollback, "\n")
 
 	let envs['BASH_FUNC___prompt_command%%'] = join(prompt_command, "\n")
 	let envs['BASH_FUNC_command_not_found_handle%%'] = join(handle_unknown_command, "\n")

@@ -1,9 +1,10 @@
 "true" ; set -e;
 "true" ; if [ "$1" == "envs" ]; then
 "true" ; 	if [ -z "$VIM" ]; then
-"true" ; 		echo "Sourcing :Terminal environment"
 "true" ; 		tmp_file=$(mktemp)
 "true" ; 		\vim -c 'set nomore' -c "redir >> ${tmp_file}" -c 'PrintTerminalEnvs' -c 'q'
+"true" ;		echo -en '\e]1337;ClearScrollback\e\\' && clear
+"true" ; 		echo "Sourcing :Terminal environment"
 "true" ; 		set -o allexport; source ${tmp_file}; set +o allexport
 "true" ; 		rm "${tmp_file}"
 "true" ;	fi
