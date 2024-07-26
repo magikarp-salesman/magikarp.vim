@@ -102,4 +102,9 @@ call plug#begin(g:vimmagikarpfolder.'/plugged')
 
 call plug#end()
 
+" fix for random characters appearing 
+" ( somehow related to the devicons plugin )
+" https://github.com/ryanoasis/vim-devicons/issues/266
+set t_RV=
+
 " vim : ft=vim syntax=on nowrap
